@@ -17,6 +17,8 @@ venv/
 /data/
 !/data/frames/.gitkeep
 !/data/uploads/.gitkeep
+# Model weights
+merged_explainer_llama3/
 # Node/React
 node_modules/
 /apps/web/node_modules/
