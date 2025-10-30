@@ -26,16 +26,20 @@ A modern, agentic platform for seamless, interactive data analysis and visualiza
 
 ## 🏗️ Architecture
 
-```mermaid
-graph TD;
-  User[User (Web UI)] -->|Chat, Upload| Frontend[React App]
-  Frontend -->|REST API| Backend[FastAPI Server]
-  Backend -->|Orchestration| Agents[Planner, SQL Agent, Python Agent, Viz Agent, Explainer Agent]
-  Agents -->|DataFrame| DuckDB[DuckDB + Pandas]
-  Agents -->|LLM API| LLM[Groq/HuggingFace]
-  Agents -->|Vector Search| FAISS[FAISS Index]
-  Agents -->|Chart| Matplotlib[Matplotlib/Plotly]
-  Backend -->|CSV Export| Storage[(CSV/Parquet)]
+```
+[User (Web UI)]
+     |
+     v
+[React Frontend] <---+         +--> [CSV/Parquet Export]
+     |                |         |
+     v                |         |
+[FastAPI Backend] ----+------> [Agents: Planner, SQL, Python, Viz, Explainer]
+     |                                  |
+     v                                  v
+[DuckDB + Pandas]          [LLM API: Groq/HuggingFace]
+     |                                  |
+     v                                  v
+[FAISS Index]                 [Matplotlib/Plotly]
 ```
 
 ---
