@@ -80,7 +80,7 @@ def drop_user_tables(user_id: str):
 if __name__ == "__main__":
     uid = "user1"
     sid = "sessA"
-    sample_csv = Path(__file__).resolve().parent.parent / "data" / "sample" / "sample.csv"
+    sample_csv = Path(__file__).resolve().parent.parent / "data" / "sample" / "sales.csv"
     if sample_csv.exists():
         df, t = ingest_file(sample_csv, user_id=uid, session_id=sid)
         print(df.head())

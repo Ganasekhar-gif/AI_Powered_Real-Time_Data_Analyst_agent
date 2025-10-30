@@ -2,6 +2,7 @@
 
 import io
 import base64
+import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
@@ -10,7 +11,8 @@ from typing import Dict, Any, Optional
 from core.executors.duckdb_exec import DuckRunner
 from core.llm.groq_client import GroqClient
 from core.rag.index import FaissIndex
-from core.llm.llama_sql_agent import DataFrameManager
+from core.utils.dataframe_manager import DataFrameManager
+from core.rag.finance_kb import FinanceKnowledgeBase
 
 
 class VisualizationAgent:
@@ -25,11 +27,13 @@ class VisualizationAgent:
         df_manager: DataFrameManager,
         llm: GroqClient,
         faiss_index: FaissIndex,
+        finance_kb: Optional[FinanceKnowledgeBase] = None,
     ):
         self.runner = runner
         self.df_manager = df_manager
         self.llm = llm
         self.faiss = faiss_index
+        self.finance_kb = finance_kb
 
     def _build_prompt(self, question: str, df: Optional[pd.DataFrame]) -> str:
         schema_text = (
@@ -41,17 +45,26 @@ class VisualizationAgent:
             [f"- {hit['text']} (score={hit['score']:.2f})" for hit in faiss_hits]
         )
 
+        # Get financial context if available
+        finance_context = ""
+        if self.finance_kb:
+            finance_context = self.finance_kb.get_financial_context(question, k=3)
+
         return f"""
-You are an AI Data Visualization expert.
+You are an AI Financial Data Visualization expert.
 
 Rules:
 - Assume the working DataFrame is named `df`.
 - Use Matplotlib (`plt`) or Plotly (`px`) for visualization.
+- Apply financial visualization best practices.
 - Return **only Python code** that generates the chart (no explanations, no markdown).
 - Do not invent columns. Use only schema below.
 
 # CURRENT SCHEMA
 {schema_text}
+
+# FINANCIAL KNOWLEDGE
+{finance_context}
 
 # RELEVANT CONTEXT
 {faiss_context}
@@ -81,11 +94,35 @@ Rules:
     def ask(self, question: str) -> Dict[str, Any]:
         df = self.df_manager.get()
         prompt = self._build_prompt(question, df)
-        code = self.llm.complete(prompt).strip()
+        code_raw = self.llm.complete(prompt).strip()
 
-        # Strip markdown fences if present
-        if "```" in code:
-            code = code.split("```")[1].strip()
+        # Strip markdown fences and language tags robustly
+        code = code_raw
+        if "```" in code_raw:
+            parts = code_raw.split("```")
+            # Typical pattern: [pre, inside, post]
+            if len(parts) >= 3:
+                candidate = parts[1].strip()
+            else:
+                # Fallback: take the longest middle-like segment
+                candidate = max(parts, key=len).strip()
+            # Remove leading language label if present
+            lines = candidate.splitlines()
+            if lines:
+                first = lines[0].strip().lower()
+                if first in {"python", "py", "pandas", "matplotlib", "plotly"}:
+                    candidate = "\n".join(lines[1:]).strip()
+            code = candidate
+
+        # Ensure non-interactive backend to avoid GUI warnings
+        try:
+            plt.switch_backend('Agg')
+        except Exception:
+            pass
+
+        # Strip interactive show() calls that trigger GUI
+        sanitized = re.sub(r"\b(plt\.show|fig\.show|px\.show)\s*\(.*?\)\s*;?", "", code, flags=re.IGNORECASE | re.DOTALL)
+        code = sanitized.strip()
 
         local_vars: Dict[str, Any] = {"pd": pd, "plt": plt, "px": px}
         if df is not None:

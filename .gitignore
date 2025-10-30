@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+.DS_Store
+.idea/
+.vscode/
+# Data
+/data/
+!/data/frames/.gitkeep
+!/data/uploads/.gitkeep
+# Node/React
+node_modules/
+/apps/web/node_modules/
+/apps/web/dist/
+/apps/web/.env
+/apps/web/.next/
+/apps/web/.turbo/
+# Build
+/build/
+/dist/
+*.log
+npm-debug.log*
+# Misc
+*.bak
+*.swp
+*.tmp

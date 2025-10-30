@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-analyst-backend
+    volumes:
+      - ./data:/app/data
+      - ./core:/app/core
+      - ./apps/api:/app/apps/api
+      - ./apps/agents:/app/apps/agents
+      - ./core/llm:/app/core/llm
+      - ./core/agents:/app/core/agents
+      - ./scripts:/app/scripts
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - frontend
+  frontend:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: data-analyst-frontend
+    working_dir: /app
+    volumes:
+      - ./apps/web:/app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000

@@ -3,7 +3,7 @@
 from typing import Dict, Any
 from core.agents.sql_agent import SQLAgent
 from core.agents.python_agent import PythonAgent
-from core.agents.viz_agent import VizAgent
+from core.agents.viz_agent import VisualizationAgent
 from core.agents.explainer_agent import ExplainerAgent
 from core.agents.critic_agent import CriticAgent
 from core.llm.groq_client import GroqClient
@@ -23,7 +23,7 @@ class PlannerAgent:
         self,
         sql_agent: SQLAgent,
         python_agent: PythonAgent,
-        viz_agent: VizAgent,
+        viz_agent: VisualizationAgent,
         explainer_agent: ExplainerAgent,
         critic_agent: CriticAgent,
         llm: GroqClient,
@@ -56,7 +56,7 @@ class PlannerAgent:
         prompt = f"""
 You are a router. Classify the following request into exactly one category:
 - "sql" if it's about querying structured tables with SQL
-- "python" if it's about cleaning, wrangling, or feature engineering
+- "python" if it's about cleaning, wrangling, or feature engineering or outlier removal
 - "viz" if it's about charts, plots, or visualization
 
 Request: {question}

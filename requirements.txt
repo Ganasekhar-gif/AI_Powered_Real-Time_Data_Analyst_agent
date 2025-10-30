@@ -8,4 +8,6 @@ pandas==2.2.2
 faiss-cpu==1.8.0.post1
 sentence-transformers==3.0.1
 numpy==1.26.4
-python-dotenv==1.0.1 
+python-dotenv==1.0.1
+matplotlib==3.8.4
+plotly==5.22.0
